@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel HL Tech</title>
+    
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    
+    <link rel="stylesheet" href="style.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    
+</head>
+<body>
+
+    <canvas id="backgroundCanvas"></canvas>
+
+    <div id="login-container" class="login-container">
+        <form id="form-login" class="login-form">
+            <img src="logo-navbar.svg" alt="HL Tech Logo" class="login-logo" id="login-logo">
+            
+            <h2>Acesso ao Painel</h2>
+            <label for="login-email">Email:</label>
+            <input type="email" id="login-email" name="email" required>
+            <label for="login-senha">Senha:</label>
+            <input type="password" id="login-senha" name="senha" required>
+            
+            <button type="submit" id="btn-submit-login">Entrar</button>
+            
+            <div id="message-area-login" class="message-area"></div>
+        </form>
+    </div>
+
+    <div id="app-container" class="hidden">
+
+        <nav class="sidebar-menu">
+            <div class="sidebar-logo">
+                <img src="logo-navbar.svg" alt="HL Tech Logo" id="sidebar-logo">
+            </div>
+            
+            <div class="sidebar-search">
+                <input type="text" id="global-search-input" placeholder="Buscar (Cliente, OS, Serial)..." autocomplete="off">
+                <div id="search-results-dropdown" class="search-results hidden"></div>
+            </div>
+            
+            <ul class="sidebar-nav">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active" data-page="page-dashboard">
+                        <span class="nav-icon">&#128200;</span> <span class="nav-text">Dashboard</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="page-os">
+                        <span class="nav-icon">&#9881;</span>
+                        <span class="nav-text">Ordens de Serviço</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="page-clientes">
+                        <span class="nav-icon">&#128100;</span>
+                        <span class="nav-text">Clientes</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="page-dispositivos">
+                        <span class="nav-icon">&#128187;</span>
+                        <span class="nav-text">Dispositivos</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="page-equipe">
+                        <span class="nav-icon">&#128119;</span>
+                        <span class="nav-text">Equipe</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="page-financeiro">
+                        <span class="nav-icon">&#128176;</span>
+                        <span class="nav-text">Financeiro</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="#" id="btn-theme-toggle" class="nav-link">
+                        <span class="nav-icon">🌓</span>
+                        <span class="nav-text">Tema</span>
+                    </a>
+                </li>
+
+                <li class="nav-item nav-item-logout">
+                    <a href="#" id="btn-logout" class="nav-link">
+                        <span class="nav-icon">&#10161;</span>
+                        <span class="nav-text">Sair</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <main class="content-area">
+
+            <section id="page-dashboard" class="page-content active">
+                <div class="page-header">
+                    <h1>Dashboard</h1>
+                    <button id="btn-refresh-dashboard">Atualizar Dados</button>
+                </div>
+                
+                <div class="dashboard-grid">
+                    
+                    <div class="card dashboard-widget">
+                        <h2>O.S. por Status</h2>
+                        <div class="chart-container">
+                            <canvas id="chart-status"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="card dashboard-widget">
+                        <h2>Faturamento (Últimos 7 dias)</h2>
+                        <div class="chart-container">
+                            <canvas id="chart-faturamento"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="card dashboard-widget">
+                        <h2>Serviços por Técnico</h2>
+                        <div class="chart-container">
+                            <canvas id="chart-tecnicos"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="card dashboard-widget">
+                        <h2>Top Aparelhos (Entrada)</h2>
+                        <div class="chart-container">
+                            <canvas id="chart-dispositivos"></canvas>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+            
+
+            <section id="page-os" class="page-content">
+                
+                <div class="page-header">
+                    <h1>Ordens de Serviço</h1>
+                    <button id="btn-show-os-modal">+ Nova Ordem de Serviço</button>
+                </div>
+
+                <section class="card" id="filter-section-os">
+                    <h2>Filtros</h2>
+                    <form id="form-filtros-os" class="filter-bar">
+                        
+                        <div>
+                            <label for="filtro-status">Status:</label>
+                            <select id="filtro-status" name="status">
+                                <option value="">Todos</option>
+                                <option value="Orçamento">Orçamento</option>
+                                <option value="Aprovado">Aprovado</option>
+                                <option value="Em Andamento">Em Andamento</option>
+                                <option value="Aguardando Peça">Aguardando Peça</option>
+                                <option value="Concluído">Concluído</option>
+                                <option value="Cancelado">Cancelado</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="filtro-cliente">Cliente:</label>
+                            <select id="filtro-cliente" name="cliente_id">
+                                <option value="">Todos</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="filtro-tecnico">Técnico:</label>
+                            <select id="filtro-tecnico" name="tecnico_id">
+                                <option value="">Todos</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label for="filtro-data-inicio">De:</label>
+                            <input type="date" id="filtro-data-inicio" name="data_inicio">
+                        </div>
+
+                        <div>
+                            <label for="filtro-data-fim">Até:</label>
+                            <input type="date" id="filtro-data-fim" name="data_fim">
+                        </div>
+
+                        <div class="filter-buttons">
+                            <button type="submit" id="btn-aplicar-filtros">Aplicar Filtros</button>
+                            <button type="reset" id="btn-limpar-filtros" class="btn-secondary">Limpar</button>
+                        </div>
+                    </form>
+                </section>
+
+
+                <section class="card" id="list-section-os">
+                    <div class="card-header">
+                        <h2>Ordens de Serviço Abertas</h2>
+                        <button id="btn-refresh-os">Atualizar</button>
+                    </div>
+                    
+                    <table id="os-table">
+                        <thead>
+                            <tr>
+                                <th>O.S. #</th>
+                                <th>Cliente</th>
+                                <th>Status</th>
+                                <th>Valor (R$)</th>
+                                <th>Data Entrada</th>
+                                <th>Gerenciar</th>
+                                <th>Documentos</th> 
+                                <th>Ações</th> </tr>
+                        </thead>
+                        <tbody id="os-table-body">
+                            <tr><td colspan="8">Carregando...</td></tr> </tbody>
+                    </table>
+                </section>
+            </section>
+
+            <section id="page-clientes" class="page-content">
+                <div class="page-header">
+                    <h1>Clientes</h1>
+                </div>
+                
+                <div class="page-grid-2-col">
+                    <section class="card" id="form-section-cliente">
+                        <h2>1. Cadastrar Cliente</h2>
+                        <form id="form-cliente">
+                            <label for="nome">Nome Completo:</label>
+                            <input type="text" id="nome" name="nome_completo" required>
+                            <label for="telefone">Telefone (WhatsApp):</label>
+                            <input type="tel" id="telefone" name="telefone" required>
+                            <label for="cpf_cnpj">CPF/CNPJ (Opcional):</label>
+                            <input type="text" id="cpf_cnpj" name="cpf_cnpj">
+                            <label for="email">E-mail (Opcional):</label>
+                            <input type="email" id="email" name="email">
+                            
+                            <h3 class="form-subtitulo">Endereço (Opcional)</h3>
+                            
+                            <label for="cep">CEP:</label>
+                            <input type="text" id="cep" name="cep">
+                            <label for="logradouro">Logradouro (Rua/Av.):</label>
+                            <input type="text" id="logradouro" name="logradouro">
+                            <label for="bairro">Bairro:</label>
+                            <input type="text" id="bairro" name="bairro">
+                            <label for="cidade">Cidade:</label>
+                            <input type="text" id="cidade" name="cidade">
+                            <label for="uf">UF (Estado):</label>
+                            <input type="text" id="uf" name="uf" maxlength="2">
+                            <label for="complemento">Complemento (Nº, Apt):</label>
+                            <input type="text" id="complemento" name="complemento">
+                            
+                            <button type="submit" id="btn-submit-cliente">Cadastrar Cliente</button>
+                        </form>
+                        <div id="message-area-cliente" class="message-area"></div>
+                    </section>
+                    
+                    <section class="card" id="list-section-cliente">
+                        <div class="card-header">
+                            <h2>Clientes Cadastrados</h2>
+                            <button id="btn-refresh-clientes">Atualizar</button>
+                        </div>
+                        <table id="client-table">
+                            <thead> 
+                                <tr> 
+                                    <th>Nome</th> 
+                                    <th>Telefone</th> 
+                                    <th>Ações</th>
+                                </tr> 
+                            </thead>
+                            <tbody id="client-table-body">
+                                <tr><td colspan="3">Carregando...</td></tr>
+                            </tbody>
+                        </table>
+                    </section>
+                </div>
+            </section>
+            
+            <section id="page-dispositivos" class="page-content">
+                <div class="page-header">
+                    <h1>Dispositivos</h1>
+                </div>
+                <div class="page-grid-2-col">
+                    <section class="card" id="form-section-dispositivo">
+                        <h2>2. Cadastrar Dispositivo</h2>
+                        <form id="form-dispositivo">
+                            <label for="select-cliente-dispositivo">Selecione o Cliente (Dono):</label>
+                            <select id="select-cliente-dispositivo" name="id_cliente" required>
+                                <option value="">Carregando clientes...</option>
+                            </select>
+                            <label for="tipo">Tipo (Ex: Notebook, Celular):</label>
+                            <input type="text" id="tipo" name="tipo" required>
+                            
+                            <label for="marca_modelo">Marca / Modelo (Opcional):</label>
+                            <input type="text" id="marca_modelo" name="marca_modelo" placeholder="Ex: Dell G15 5511">
+                            
+                            <label for="numero_serie">Nº Série (Opcional):</label>
+                            <input type="text" id="numero_serie" name="numero_serie">
+                            <label for="sigma_sinarm">Sigma/Sinarm (Opcional):</label>
+                            <input type="text" id="sigma_sinarm" name="sigma_sinarm">
+                            
+                            <label for="defeito_relatado">Defeito Relatado:</label>
+                            <textarea id="defeito_relatado" name="defeito_relatado" rows="3" required></textarea>
+                            <button type="submit" id="btn-submit-dispositivo">Cadastrar Dispositivo</button>
+                        </form>
+                        <div id="message-area-dispositivo" class="message-area"></div>
+                    </section>
+                    
+                    <section class="card" id="list-section-dispositivo">
+                        <div class="card-header">
+                            <h2>Dispositivos Cadastrados</h2>
+                            <button id="btn-refresh-dispositivos">Atualizar</button>
+                        </div>
+                        <table id="dispositivo-table">
+                            <thead> 
+                                <tr> 
+                                    <th>Tipo</th> 
+                                    <th>Cliente</th> 
+                                    <th>Defeito</th> 
+                                    <th>Ações</th>
+                                </tr> 
+                            </thead>
+                            <tbody id="dispositivo-table-body">
+                                <tr><td colspan="4">Carregando...</td></tr>
+                            </tbody>
+                        </table>
+                    </section>
+                </div>
+            </section>
+
+            <section id="page-equipe" class="page-content">
+                <div class="page-header">
+                    <h1>Gestão de Equipe</h1>
+                </div>
+                
+                <div class="page-grid-2-col">
+                    <section class="card">
+                        <h2>Cadastrar Técnico</h2>
+                        <form id="form-tecnico">
+                            <label for="tecnico-nome">Nome Completo:</label>
+                            <input type="text" id="tecnico-nome" name="nome_completo" required>
+                            
+                            <label for="tecnico-email">Email (Para logs):</label>
+                            <input type="email" id="tecnico-email" name="email" placeholder="Opcional">
+                            
+                            <button type="submit" id="btn-submit-tecnico">Salvar Técnico</button>
+                        </form>
+                        <div id="message-area-tecnico" class="message-area"></div>
+                    </section>
+                    
+                    <section class="card">
+                        <div class="card-header">
+                            <h2>Técnicos Ativos</h2>
+                            <button id="btn-refresh-tecnicos" class="btn-acao">Atualizar</button>
+                        </div>
+                        <table id="tecnicos-table">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Email</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tecnicos-table-body">
+                                <tr><td colspan="3">Carregando...</td></tr>
+                            </tbody>
+                        </table>
+                    </section>
+                </div>
+            </section>
+
+            <section id="page-financeiro" class="page-content">
+                <div class="page-header">
+                    <h1>Financeiro (Mês Atual)</h1>
+                    <button id="btn-refresh-financeiro">Atualizar</button>
+                </div>
+
+                <div class="dashboard-grid" style="margin-bottom: 30px;">
+                    <div class="card dashboard-widget" style="min-height: auto; border-left: 5px solid #28a745;">
+                        <h3>Entradas (O.S.)</h3>
+                        <p id="fin-entradas" style="font-size: 2em; font-weight: bold; color: #fff;">R$ 0,00</p>
+                    </div>
+                    <div class="card dashboard-widget" style="min-height: auto; border-left: 5px solid #dc3545;">
+                        <h3>Saídas (Despesas)</h3>
+                        <p id="fin-saidas" style="font-size: 2em; font-weight: bold; color: #fff;">R$ 0,00</p>
+                    </div>
+                    <div class="card dashboard-widget" style="min-height: auto; border-left: 5px solid #9e46ff;">
+                        <h3>Lucro Líquido</h3>
+                        <p id="fin-lucro" style="font-size: 2em; font-weight: bold; color: #fff;">R$ 0,00</p>
+                    </div>
+                </div>
+
+                <div class="page-grid-2-col">
+                    <section class="card">
+                        <h2>Registrar Despesa</h2>
+                        <form id="form-despesa">
+                            <label for="desc-despesa">Descrição:</label>
+                            <input type="text" id="desc-despesa" name="descricao" placeholder="Ex: Conta de Luz, Peça X" required>
+                            
+                            <label for="cat-despesa">Categoria:</label>
+                            <select id="cat-despesa" name="categoria">
+                                <option value="Peças">Peças/Estoque</option>
+                                <option value="Infraestrutura">Infraestrutura (Luz/Net)</option>
+                                <option value="Marketing">Marketing</option>
+                                <option value="Pessoal">Pessoal/Salário</option>
+                                <option value="Outros">Outros</option>
+                            </select>
+                            
+                            <label for="valor-despesa">Valor (R$):</label>
+                            <input type="number" id="valor-despesa" name="valor" step="0.01" required>
+                            
+                            <label for="data-despesa">Data:</label>
+                            <input type="date" id="data-despesa" name="data_despesa" required>
+                            
+                            <button type="submit" id="btn-submit-despesa">Registrar Saída</button>
+                        </form>
+                        <div id="message-area-financeiro" class="message-area"></div>
+                    </section>
+
+                    <section class="card">
+                        <div class="card-header">
+                            <h2>Últimas Despesas</h2>
+                        </div>
+                        <table id="tabela-despesas">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Descrição</th>
+                                    <th>Valor</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="despesas-table-body">
+                                <tr><td colspan="4">Carregando...</td></tr>
+                            </tbody>
+                        </table>
+                    </section>
+                </div>
+            </section>
+
+        </main>
+
+        <div id="gerenciador-modal-backdrop" class="modal-backdrop hidden">
+            <div id="gerenciador-modal" class="modal-content modal-large">
+                <div class="modal-header">
+                    <h3>Gerenciar O.S. #<span id="modal-os-id"></span></h3>
+                    <button id="btn-modal-close" title="Fechar">&times;</button>
+                </div>
+
+                <div class="modal-status-updater">
+                    <label for="modal-os-status-select">Alterar Status:</label>
+                    <select id="modal-os-status-select">
+                        <option value="Orçamento">Orçamento</option>
+                        <option value="Aprovado">Aprovado</option>
+                        <option value="Em Andamento">Em Andamento</option>
+                        <option value="Aguardando Peça">Aguardando Peça</option>
+                        <option value="Concluído">Concluído</option>
+                        <option value="Cancelado">Cancelado</option>
+                    </select>
+                    <button id="btn-update-status">Salvar Status</button>
+                    <div id="message-area-status" class="message-area"></div>
+                </div>
+
+
+                <nav class="modal-tabs">
+                    <button class="tab-button active" data-tab="tab-itens">Produtos/Serviços</button>
+                    <button class="tab-button" data-tab="tab-detalhes">Detalhes da O.S.</button>
+                    <button class="tab-button" data-tab="tab-imagens">Imagens</button>
+                    <button class="tab-button" data-tab="tab-historico">Histórico</button>
+                    <button class="tab-button" data-tab="tab-assinatura">Assinatura</button>
+                </nav>
+
+                <div id="tab-itens" class="modal-tab-content active">
+                    <h4>Adicionar Novo Item</h4>
+                    <form id="form-add-item">
+                        <input type="hidden" id="item-os-id-hidden">
+                        <div class="item-span-2">
+                            <label for="item-descricao">Descrição (Ex: Placa Mãe, Limpeza):</label>
+                            <input type="text" id="item-descricao" name="descricao" required>
+                        </div>
+                        <div>
+                            <label for="item-tipo">Tipo:</label>
+                            <select id="item-tipo" name="tipo" required>
+                                <option value="PRODUTO">Produto</option>
+                                <option value="SERVICO">Serviço</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="item-garantia">Garantia (Ex: 90 dias):</label>
+                            <input type="text" id="item-garantia" name="garantia">
+                        </div>
+                        <div>
+                            <label for="item-quantidade">Quantidade:</label>
+                            <input type="number" id="item-quantidade" name="quantidade" value="1" step="1" min="1" required>
+                        </div>
+                        <div>
+                            <label for="item-valor-unitario">Valor Unitário (R$):</label>
+                            <input type="number" id="item-valor-unitario" name="valor_unitario" value="0.00" step="0.01" min="0" required>
+                        </div>
+                        <button type="submit" id="btn-submit-item" class="item-span-2">Adicionar Item</button>
+                    </form>
+                    <div id="message-area-item" class="message-area"></div>
+                    <div class="gallery-container">
+                        <h4>Itens Anexados:</h4>
+                        <table id="itens-table">
+                            <thead>
+                                <tr>
+                                    <th>Tipo</th>
+                                    <th>Descrição</th>
+                                    <th>Qnt.</th>
+                                    <th class="coluna-valor">V. Unit.</th>
+                                    <th class="coluna-valor">V. Total</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="itens-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="tab-detalhes" class="modal-tab-content">
+                    <h4>Editar Detalhes da O.S.</h4>
+                    <form id="form-os-detalhes">
+                        <input type="hidden" id="detalhes-os-id-hidden">
+
+                        <label for="detalhes-laudo">Observações/Laudo Técnico:</label>
+                        <textarea id="detalhes-laudo" name="laudo_tecnico" rows="4"></textarea>
+                        
+                        <label for="detalhes-acessorios">Acessórios (Ex: Cabo, Fonte):</label>
+                        <input type="text" id="detalhes-acessorios" name="acessorios">
+                        
+                        <h3 class="form-subtitulo">Garantia e Valores</h3>
+                        
+                        <label for="detalhes-tecnico-select">Técnico:</label>
+                        <select id="detalhes-tecnico-select" name="id_tecnico">
+                            <option value="">Carregando técnicos...</option>
+                        </select>
+                        
+                        <label for="detalhes-garantia">Termo de Garantia (Ex: 90 dias serviço):</label>
+                        <input type="text" id="detalhes-garantia" name="termo_garantia">
+                        
+                        <label for="detalhes-desconto">Desconto (R$):</label>
+                        <input type="number" id="detalhes-desconto" name="valor_desconto" step="0.01" value="0.00">
+                        
+                        <button type="submit" id="btn-submit-detalhes">Salvar Detalhes</button>
+                    </form>
+                    <div id="message-area-detalhes" class="message-area"></div>
+                </div>
+
+                <div id="tab-imagens" class="modal-tab-content">
+                    <div class="gallery-container">
+                        <h4>Imagens Anexadas:</h4>
+                        <div id="existing-images-list"></div>
+                    </div>
+                    <p>Selecione uma nova imagem para anexar:</p>
+                    <form id="form-upload">
+                        <input type="hidden" id="upload-os-id-hidden" name="os_id">
+                        <label for="input-file-upload">Selecione a imagem:</label>
+                        <input type="file" id="input-file-upload" name="imagemOS" accept="image/png, image/jpeg">
+                        <div id="message-area-upload" class="message-area"></div>
+                        <div class="modal-actions">
+                            <button type="submit" id="btn-modal-submit">Enviar Nova Imagem</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div id="tab-historico" class="modal-tab-content">
+                    <h4>Histórico de Ações da O.S.</h4>
+                    <ul id="os-history-list" class="history-list">
+                        <li>Carregando histórico...</li>
+                    </ul>
+                </div>
+                
+                <div id="tab-assinatura" class="modal-tab-content">
+                    <h4>Assinatura do Cliente</h4>
+                    <p>Peça ao cliente para assinar abaixo em sinal de concordância com os termos.</p>
+                    
+                    <div id="signature-pad-wrapper" class="signature-pad-wrapper">
+                        <canvas id="signature-canvas" class="signature-canvas"></canvas>
+                    </div>
+                    
+                    <div id="message-area-assinatura" class="message-area"></div>
+                    
+                    <div class="signature-actions">
+                        <button id="btn-clear-signature" class="btn-secondary">Limpar</button>
+                        <button id="btn-save-signature">Salvar Assinatura</button>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+        
+        <div id="create-os-modal-backdrop" class="modal-backdrop hidden">
+            <div id="create-os-modal" class="modal-content modal-medium">
+                <div class="modal-header">
+                    <h3>Criar Nova Ordem de Serviço</h3>
+                    <button id="btn-modal-close-os" title="Fechar">&times;</button>
+                </div>
+                
+                <form id="form-os">
+                    
+                    <h3 class="form-subtitulo">1. Cliente e Dispositivo</h3>
+                    <label for="os-select-cliente">Cliente:</label>
+                    <select id="os-select-cliente" name="id_cliente" required>
+                        <option value="">1º Selecione o Cliente...</option>
+                    </select>
+                    <label for="os-select-dispositivo">Dispositivo:</label>
+                    <select id="os-select-dispositivo" name="id_dispositivo" required disabled>
+                        <option value="">2º Selecione o Dispositivo...</option>
+                    </select>
+                    <div class="form-display-field">
+                        <label>Defeito Relatado (do Dispositivo):</label>
+                        <p id="os-display-defeito">Selecione um dispositivo para ver o defeito.</p>
+                    </div>
+
+                    <h3 class="form-subtitulo">2. Serviços e Detalhes da O.S.</h3>
+                    <label for="descricao_servico">Descrição do Serviço Principal:</label>
+                    <input type="text" id="descricao_servico" name="descricao_servico" value="Serviços Gerais">
+                    <label for="valor_servico">Valor do Serviço (R$):</label>
+                    <input type="number" id="valor_servico" name="valor_servico" step="0.01" value="0.00">
+                    <label for="status">Status Inicial:</label>
+                    <select id="status" name="status" required>
+                        <option value="Orçamento" selected>Orçamento</option>
+                        <option value="Aprovado">Aprovado</option>
+                        <option value="Em Andamento">Em Andamento</option>
+                        <option value="Aguardando Peça">Aguardando Peça</option>
+                        <option value="Concluído">Concluído</option>
+                        <option value="Cancelado">Cancelado</option>
+                    </select>
+                    <label for="laudo_tecnico">Observações Iniciais (Laudo):</label>
+                    <textarea id="laudo_tecnico" name="laudo_tecnico" rows="2"></textarea>
+                    <label for="acessorios">Acessórios (Ex: Cabo, Fonte):</label>
+                    <input type="text" id="acessorios" name="acessorios">
+                    
+                    
+                    <h3 class="form-subtitulo">3. Garantia e Desconto</h3>
+                    
+                    <label for="os-select-tecnico">Técnico:</label>
+                    <select id="os-select-tecnico" name="id_tecnico">
+                        <option value="">Carregando técnicos...</option>
+                    </select>
+                    
+                    <label for="termo_garantia">Termo de Garantia (Ex: 90 dias serviço):</label>
+                    <input type="text" id="termo_garantia" name="termo_garantia" value="90 dias (serviço/peça)">
+                    
+                    <label for="valor_desconto">Desconto (R$):</label>
+                    <input type="number" id="valor_desconto" name="valor_desconto" step="0.01" value="0.00">
+                                        
+                    <button type="submit" id="btn-submit-os" disabled>Criar Ordem de Serviço</button>
+                </form>
+                <div id="message-area-os" class="message-area"></div>
+            </div>
+        </div>
+
+        <div id="alert-modal-backdrop" class="modal-backdrop hidden">
+            <div id="alert-modal" class="modal-content modal-small">
+                <div class="modal-header">
+                    <h3 id="alert-modal-title">Aviso</h3>
+                </div>
+                <div class="modal-body">
+                    <p id="alert-modal-message">Mensagem de exemplo.</p>
+                </div>
+                <div id="alert-modal-actions" class="modal-actions">
+                    <button id="alert-modal-btn-cancel" class="btn-secondary">Cancelar</button>
+                    <button id="alert-modal-btn-confirm">OK</button>
+                </div>
+            </div>
+        </div>
+
+    </div> 
+    
+    <script src="script.js"></script> 
+</body>
+</html>
